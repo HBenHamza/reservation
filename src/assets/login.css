@@ -1,0 +1,119 @@
+/* src/components/LoginPage.css */
+body:has(.container#login#login) {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100vh;
+    margin: 0;
+    font-family: 'Poppins', sans-serif;
+    background: linear-gradient(135deg, #623D12, #764ba2);
+  }
+
+  body:has(.container#login#login) .navbar ,
+  body:has(.container#login#login) .footer {
+    display: none;
+  } 
+  
+  .container#login {
+    width: 350px;
+    background: #fff;
+    border-radius: 10px;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+    overflow: hidden;
+  }
+  
+  .box {
+    padding: 20px;
+  }
+  
+  .toggle {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 20px;
+  }
+  
+  .toggle-btn {
+    flex: 1;
+    padding: 10px;
+    background: #e0e0e0;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    transition: background 0.3s;
+    font-weight: bold;
+  }
+  
+  .toggle-btn.active {
+    background: #667eea;
+    color: #fff;
+  }
+  
+  .form-wrapper {
+    transition: all 0.3s ease;
+    margin-bottom: 2em;
+  }
+  
+  form {
+    display: flex;
+    flex-direction: column;
+  }
+  
+  input {
+    padding: 10px;
+    margin-bottom: 15px;
+    border: 1px solid #ddd;
+    border-radius: 5px;
+    font-size: 14px;
+  }
+  
+  .submit-btn {
+    padding: 10px;
+    background: #623D12;
+    color: #fff;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    transition: background 0.3s;
+  }
+  
+  .submit-btn:hover {
+    background: #667eea;
+  }
+  
+  .return {
+    display: block;
+    width: 50%;
+    margin: auto;
+    text-align: center;
+    font-style: normal;
+  }
+  
+  /* login.css */
+.container {
+  font-size: 18px; /* Increase the overall font size */
+}
+
+.alert {
+  padding: 10px;
+  margin-bottom: 15px;
+  border-radius: 5px;
+  text-align: center;
+}
+
+.alert.success {
+  background-color: #dff0d8;
+  color: #3c763d;
+}
+
+.alert.error {
+  background-color: #f2dede;
+  color: #a94442;
+}
+
+.toggle-btn {
+  font-size: 18px; /* Increase button font size */
+}
+
+.submit-btn {
+  font-size: 18px; /* Increase submit button font size */
+}
