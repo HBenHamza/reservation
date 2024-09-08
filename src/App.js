@@ -21,7 +21,7 @@ function App() {
           <Route path="/reservation/:roomId" component={Reservation} />
           <Route path="/login" component={Login} />
           <Route path="/virtualTour" component={VirtualTour} />
-          <Route path="/payment" component={Payment} />
+          <Route path="/payment/:reservation_id" component={Payment} />
         </Switch>
         <Footer />
       </div>

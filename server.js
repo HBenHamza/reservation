@@ -135,13 +135,36 @@ app.post('/api/login', (req, res) => {
 
 // Endpoint to handle reservation data
 app.post('/api/reservations', (req, res) => {
-    const { phone, arrival_date, departure_date, number_of_nights, voucher, room_id } = req.body;
-    const query = 'INSERT INTO reservation (phone, arrival_date, departure_date, number_of_nights, voucher, room) VALUES (?, ?, ?, ?, ?, ?)';
-    db.query(query, [phone, arrival_date, departure_date, number_of_nights, voucher, room_id], (err, result) => {
-      if (err) return res.status(500).json({ error: err.message });
-      res.status(200).json({ reservation_id: result.insertId });
+    const { full_name, email, phone, arrival_date, departure_date, number_of_nights, room_id, special_occasion, voucher } = req.body;
+    const query = `
+        INSERT INTO reservation (
+            full_name, email, phone, arrival_date, departure_date, number_of_nights, room, special_occasion, voucher
+        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+    `;
+    db.query(query, [full_name, email, phone, arrival_date, departure_date, number_of_nights, room_id, special_occasion || null, voucher], (err, result) => {
+        if (err) return res.status(500).json({ error: err.message });
+        res.status(200).json({ reservation_id: result.insertId });
     });
-  });
+});
+
+app.get('/api/reservations/:reservation_id', (req, res) => {
+    const reservationId = parseInt(req.params.reservation_id);
+    const query = `SELECT * FROM reservation WHERE id = ?`;
+
+    db.query(query, [reservationId], (err, results) => {
+        if (err) return res.status(500).json({ error: err.message });
+
+        if (results.length === 0) {
+            return res.status(404).json({ error: 'Reservation not found.' });
+        }
+
+        const reservationData = results[0];
+        res.status(200).json(reservationData);
+    });
+});
+
+
+
   
   // Endpoint to handle payment data
   app.post('/api/payments', (req, res) => {

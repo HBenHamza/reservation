@@ -1,9 +1,10 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import { Alert } from 'react-bootstrap'; // Ensure you have react-bootstrap installed
-import { useHistory } from 'react-router-dom';
+import { useHistory, useParams } from 'react-router-dom';
 
 const Payment = () => {
+  const { reservation_id } = useParams(); // Get reservation_id from URL parameters
   const history = useHistory();
 
   const [formData, setFormData] = useState({
@@ -15,6 +16,18 @@ const Payment = () => {
   });
   const [alertMessage, setAlertMessage] = useState(null);
   const [alertType, setAlertType] = useState('success');
+  const [roomPrice, setRoomPrice] = useState(0);
+
+  useEffect(() => {
+    // Retrieve roomPrice from sessionStorage
+    const storedRoomPrice = sessionStorage.getItem('roomPrice');
+    if (storedRoomPrice) {
+      setRoomPrice(parseFloat(storedRoomPrice));
+    } else {
+      setAlertMessage('Room price not found. Please return to the reservation page.');
+      setAlertType('error');
+    }
+  }, []);
 
   const handleChange = (e) => {
     const { id, value } = e.target;
@@ -24,45 +37,69 @@ const Payment = () => {
     });
   };
 
-  const generateRandomString = (length) => {
-    const characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
-    let result = '';
-    for (let i = 0; i < length; i++) {
-      result += characters.charAt(Math.floor(Math.random() * characters.length));
+  const validateForm = () => {
+    const { nameOnCard, cardNumber, expiryDate, securityCode, zipCode } = formData;
+
+    // Name on Card: Not empty
+    if (!nameOnCard.trim()) {
+      setAlertMessage('Name on card is required.');
+      setAlertType('error');
+      return false;
     }
-    return result;
+
+    // Card Number: Valid length and format (basic validation)
+    if (!/^(\d{13,19})$/.test(cardNumber)) {
+      setAlertMessage('Card number must be between 13 and 19 digits.');
+      setAlertType('error');
+      return false;
+    }
+
+    // Expiry Date: Valid MM/YY format and not expired
+    const expiryPattern = /^(0[1-9]|1[0-2])\/(\d{2})$/;
+    const today = new Date();
+    const [month, year] = expiryDate.split('/');
+    if (!expiryPattern.test(expiryDate)) {
+      setAlertMessage('Expiry date must be in MM/YY format.');
+      setAlertType('error');
+      return false;
+    }
+    const expiryYear = parseInt(`20${year}`, 10);
+    const expiryMonth = parseInt(month, 10);
+    if (expiryYear < today.getFullYear() || (expiryYear === today.getFullYear() && expiryMonth < today.getMonth() + 1)) {
+      setAlertMessage('Card has expired.');
+      setAlertType('error');
+      return false;
+    }
+
+    // Security Code: 3 or 4 digits
+    if (!/^\d{3,4}$/.test(securityCode)) {
+      setAlertMessage('Security code must be 3 or 4 digits.');
+      setAlertType('error');
+      return false;
+    }
+
+    // ZIP/Postal Code: Basic validation (adjust pattern as needed)
+    if (!/^\d{5,10}$/.test(zipCode)) {
+      setAlertMessage('ZIP/Postal code must be between 5 and 10 digits.');
+      setAlertType('error');
+      return false;
+    }
+
+    return true;
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
 
+    if (!validateForm()) return; // Perform validation before submission
+
     const { nameOnCard, cardNumber, expiryDate, securityCode, zipCode } = formData;
 
-    if (!nameOnCard || !cardNumber || !expiryDate || !securityCode || !zipCode) {
-      console.log('Missing fields detected'); // Debug log
-      setAlertMessage('Please fill in all fields.');
-      setAlertType('error');
-      return;
-    }
-
-    // Fake data
-    const fakeReservationId = generateRandomString(10);
-    const fakeUserId = localStorage.getItem('user') ? JSON.parse(localStorage.getItem('user')).id : generateRandomString(5);
-    const fakeTransactionId = generateRandomString(16);
-
-    const reservationData = {
-      phone: '123-456-7890',
-      arrival_date: '2024-09-07',
-      departure_date: '2024-09-14',
-      number_of_nights: 7,
-      voucher: generateRandomString(8),
-      room_id: 1
-    };
-
+    // Create payment data
     const paymentData = {
-      transaction_id: fakeTransactionId,
-      reservation_id: 2,
-      user_id: 1,
+      transaction_id: generateRandomString(16),
+      reservation_id: reservation_id, // Use the reservation ID from URL
+      user_id: 1, // Replace with actual user ID retrieval logic
       name_on_card: nameOnCard,
       card_number: cardNumber,
       expiry_date: expiryDate,
@@ -71,7 +108,6 @@ const Payment = () => {
     };
 
     try {
-      await axios.post('http://localhost:3001/api/reservations', reservationData);
       await axios.post('http://localhost:3001/api/payments', paymentData);
       setAlertMessage('Payment processed successfully!');
       setAlertType('success');
@@ -83,6 +119,15 @@ const Payment = () => {
       setAlertMessage('Error processing payment. Please try again.');
       setAlertType('error');
     }
+  };
+
+  const generateRandomString = (length) => {
+    const characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
+    let result = '';
+    for (let i = 0; i < length; i++) {
+      result += characters.charAt(Math.floor(Math.random() * characters.length));
+    }
+    return result;
   };
 
   return (
@@ -104,7 +149,7 @@ const Payment = () => {
           <div className="form-group">
             <label htmlFor="PaymentAmount">Payment amount</label>
             <div className="amount-placeholder">
-              <span>250.00 </span>
+              <span>{roomPrice.toFixed(2)} </span>
               <span>TND</span>
             </div>
           </div>
@@ -172,7 +217,7 @@ const Payment = () => {
           </div>
           <button id="PayButton" className="btn btn-block btn-success submit-button" type="submit">
             <span className="submit-button-lock"></span>
-            <span className="align-middle">Pay 250.00 TND</span>
+            <span className="align-middle">Pay {roomPrice.toFixed(2)} TND</span>
           </button>
         </form>
       </div>

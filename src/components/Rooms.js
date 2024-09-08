@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import { getImageSrc } from '../Utils/imageUtils';
-import { useHistory } from 'react-router-dom'; // Import useHistory
+import { useHistory } from 'react-router-dom';
 
 const Rooms = () => {
   const [filter, setFilter] = useState('all');
@@ -12,7 +12,7 @@ const Rooms = () => {
   const [roomData, setRoomData] = useState({});
   const [roomItems, setRoomItems] = useState([]);
 
-  const history = useHistory(); // Initialize useHistory
+  const history = useHistory();
 
   useEffect(() => {
     // Fetch room data from the server
@@ -82,6 +82,9 @@ const Rooms = () => {
       });
       setCurrentIndex(0); // Reset index when opening new details
       setDetailsModal(true);
+
+      // Set the hidden input value
+      document.getElementById('roomIdInput').value = room.id;
     } catch (error) {
       console.error('Error fetching images:', error);
     }
@@ -111,8 +114,9 @@ const Rooms = () => {
     });
   };
 
-  const handleReserveClick = (roomId) => {
-    history.push(`/reservation/${roomId}`); // Navigate to reservation page with room ID
+  const handleReserveClick = () => {
+    const roomId = document.getElementById('roomIdInput').value;
+    history.push(`/reservation/${roomId}`); // Pass the room's ID to the reservation page
   };
 
   return (
@@ -134,7 +138,7 @@ const Rooms = () => {
           {roomItems
             .filter(room => filter === 'all' || room.type === filter)
             .map((room, index) => (
-              <li key={index} className="room" data-type={room.type} img-folder={room.folder}>
+              <li key={index} className="room" data-type={room.type}>
                 <img
                   src={getImageSrc(room.images[0])}
                   alt={room.title}
@@ -180,7 +184,8 @@ const Rooms = () => {
             <div className="modal-description">
               <h2>{roomData.title}</h2>
               <p>{roomData.description}</p>
-              <button className="reserve-button" onClick={() => handleReserveClick(roomData.folder)}>Reserve this room</button>
+              <input type="hidden" id="roomIdInput" />
+              <button className="reserve-button" onClick={handleReserveClick}>Reserve this room</button>
             </div>
           </div>
         </div>
