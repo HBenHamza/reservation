@@ -6,6 +6,7 @@ import Rooms from './components/Rooms';
 import Reservation from './components/Reservation.js';
 import Login from './components/Login';
 import VirtualTour from './components/VirtualTour.js';
+import Admin from './components/_partials/Admin.js';
 import Payment from './components/Payment.js';
 import Menu from './components/_partials/Menu.js';
 import Footer from './components/_partials/Footer.js';
@@ -24,6 +25,7 @@ function App() {
           <Route path="/profile" component={Profile} />
           <Route path="/virtualTour" component={VirtualTour} />
           <Route path="/payment/:reservation_id/:roomPrice" component={Payment} />
+          <Route path="/admin" component={Admin} />
         </Switch>
         <Footer />
       </div>

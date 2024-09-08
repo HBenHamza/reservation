@@ -5,6 +5,8 @@ const cors = require('cors');
 const mysql = require('mysql');
 const bcrypt = require('bcryptjs');
 const bodyParser = require('body-parser'); // Import body-parser
+const PDFDocument = require('pdfkit');
+const moment = require('moment'); // For formatting dates
 
 const app = express();
 
@@ -225,9 +227,10 @@ app.post('/api/reservations/update-status', (req, res) => {
         card_number, 
         expiry_date, 
         security_code, 
-        zip_code
+        zip_code,
+        date
       ) 
-      VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?, NOW())
     `;
   
     db.query(query, [
@@ -341,6 +344,84 @@ app.get('/api/user/reservations/:userId', (req, res) => {
         res.json({ message: 'Reservation cancelled successfully' });
       });
     });  
+
+
+    // Endpoint to fetch all users
+app.get('/api/users', (req, res) => {
+  db.query('SELECT * FROM users', (err, results) => {
+    if (err) return res.status(500).json({ error: err.message });
+    res.json(results);
+  });
+});
+
+// Endpoint to fetch all reservations
+app.get('/api/reservations', (req, res) => {
+  db.query('SELECT * FROM reservation', (err, results) => {
+    if (err) return res.status(500).json({ error: err.message });
+    res.json(results);
+  });
+});
+
+// Endpoint to fetch all payments
+app.get('/api/payments', (req, res) => {
+  db.query('SELECT * FROM payment', (err, results) => {
+    if (err) return res.status(500).json({ error: err.message });
+    res.json(results);
+  });
+});
+
+// Endpoint to generate invoice PDF
+app.get('/api/invoice/:paymentId', async (req, res) => {
+  const paymentId = req.params.paymentId;
+
+  // Fetch payment details
+  db.query('SELECT * FROM payment WHERE id = ?', [paymentId], async (err, paymentResults) => {
+    if (err) return res.status(500).json({ error: err.message });
+    const payment = paymentResults[0];
+
+    // Fetch reservation details
+    db.query('SELECT * FROM reservation WHERE id = ?', [payment.reservation_id], async (err, reservationResults) => {
+      if (err) return res.status(500).json({ error: err.message });
+      const reservation = reservationResults[0];
+
+      // Fetch user details
+      db.query('SELECT * FROM users WHERE id = ?', [payment.user_id], async (err, userResults) => {
+        if (err) return res.status(500).json({ error: err.message });
+        const user = userResults[0];
+
+        // Generate PDF
+        const doc = new PDFDocument();
+        let filename = `invoice_${paymentId}.pdf`;
+        res.setHeader('Content-disposition', `attachment; filename=${filename}`);
+        res.setHeader('Content-type', 'application/pdf');
+        
+        doc.pipe(res);
+
+        doc.fillColor('red').fontSize(14).text(`Invoice for Payment ID: ${paymentId}`, {
+          align: 'center'
+        }).moveDown();
+        
+        doc.fillColor('red').fontSize(14).text(`User Details:`);
+        doc.fillColor('black').fontSize(14).text(`User: ${user.username}`);
+        doc.text(`Email: ${user.email}`).moveDown();;
+
+        doc.fillColor('red').fontSize(14).text(`Reservation Details:`);
+        doc.fillColor('black').fontSize(14).text(`Arrival Date: ${moment(reservation.arrival_date).format('MMMM D, YYYY HH:mm:ss')}`);
+        doc.fillColor('black').fontSize(14).text(`Departure Date: ${moment(reservation.departure_date).format('MMMM D, YYYY HH:mm:ss')}`);
+        doc.fontSize(14).text(`Number of Nights: ${reservation.number_of_nights}`).moveDown();
+        
+        doc.fillColor('red').fontSize(14).text(`Payment Details:`)
+        doc.fillColor('black').fontSize(14).text(`Transaction ID: ${payment.transaction_id}`);
+        doc.fillColor('black').fontSize(14).text(`Payment Date: ${moment(payment.date).format('MMMM D, YYYY HH:mm:ss')}`); // Format the payment date
+        
+        doc.end();
+      });
+    });
+  });
+});
+
+
+
 
 // Define the port and start the server
 const PORT = process.env.PORT || 3001;
