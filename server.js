@@ -420,7 +420,17 @@ app.get('/api/invoice/:paymentId', async (req, res) => {
   });
 });
 
+app.get('/api/images/:folder', (req, res) => {
+  const folder = req.params.folder;
+  const imageFolderPath = path.join(__dirname, 'public', 'img', folder);
 
+  fs.readdir(imageFolderPath, (err, files) => {
+    if (err) return res.status(500).json({ error: err.message });
+
+    const images = files.filter(file => /\.(jpg|jpeg|png|gif)$/.test(file));
+    res.json(images);
+  });
+});
 
 
 // Define the port and start the server

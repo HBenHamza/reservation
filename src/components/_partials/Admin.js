@@ -1,34 +1,37 @@
+// src/components/Admin.js
+
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
-import { Link } from 'react-router-dom';
-import jsPDF from 'jspdf';
-import autoTable from 'jspdf-autotable';
-import { format, differenceInHours } from 'date-fns';
+import { format } from 'date-fns';
+import PasswordPrompt from '../PasswordPrompt'; // Import the PasswordPrompt component
 
 const Admin = () => {
+  const [authenticated, setAuthenticated] = useState(false);
   const [users, setUsers] = useState([]);
   const [reservations, setReservations] = useState([]);
   const [payments, setPayments] = useState([]);
-  
+
   useEffect(() => {
-    // Fetch data
-    const fetchData = async () => {
-      try {
-        const [usersRes, reservationsRes, paymentsRes] = await Promise.all([
-          axios.get('http://localhost:3001/api/users'),
-          axios.get('http://localhost:3001/api/reservations'),
-          axios.get('http://localhost:3001/api/payments')
-        ]);
-        setUsers(usersRes.data);
-        setReservations(reservationsRes.data);
-        setPayments(paymentsRes.data);
-      } catch (error) {
-        console.error('Error fetching data', error);
-      }
-    };
-    
-    fetchData();
-  }, []);
+    if (authenticated) {
+      // Fetch data only if authenticated
+      const fetchData = async () => {
+        try {
+          const [usersRes, reservationsRes, paymentsRes] = await Promise.all([
+            axios.get('http://localhost:3001/api/users'),
+            axios.get('http://localhost:3001/api/reservations'),
+            axios.get('http://localhost:3001/api/payments')
+          ]);
+          setUsers(usersRes.data);
+          setReservations(reservationsRes.data);
+          setPayments(paymentsRes.data);
+        } catch (error) {
+          console.error('Error fetching data', error);
+        }
+      };
+
+      fetchData();
+    }
+  }, [authenticated]);
 
   const handleCancelReservation = async (reservationId) => {
     try {
@@ -69,6 +72,10 @@ const Admin = () => {
     }
   };
 
+  if (!authenticated) {
+    return <PasswordPrompt onAuthenticate={() => setAuthenticated(true)} />;
+  }
+
   return (
     <div className='container' id='admin'>
       <h1>Admin Dashboard</h1>
@@ -80,7 +87,6 @@ const Admin = () => {
             <th>ID</th>
             <th>Username</th>
             <th>Email</th>
-            <th>Phone</th>
           </tr>
         </thead>
         <tbody>
@@ -89,7 +95,6 @@ const Admin = () => {
               <td>{user.id}</td>
               <td>{user.username}</td>
               <td>{user.email}</td>
-              <td>{user.phone}</td>
             </tr>
           ))}
         </tbody>
@@ -103,7 +108,7 @@ const Admin = () => {
             <th>Full Name</th>
             <th>Arrival Date</th>
             <th>Departure Date</th>
-            <th>status</th>
+            <th>Status</th>
             <th>Actions</th>
           </tr>
         </thead>
@@ -112,12 +117,12 @@ const Admin = () => {
             <tr key={reservation.id}>
               <td>{reservation.id}</td>
               <td>{reservation.full_name}</td>
-              <td>{format(new Date(reservation.departure_date), 'yyyy-MM-dd')}</td>
+              <td>{format(new Date(reservation.arrival_date), 'yyyy-MM-dd')}</td>
               <td>{format(new Date(reservation.departure_date), 'yyyy-MM-dd')}</td>
               <td>{reservation.status}</td>
               <td>
                 <button onClick={() => handleCancelReservation(reservation.id)}
-                   disabled={reservation.status == "canceled"}>Cancel</button>
+                   disabled={reservation.status === 'canceled'}>Cancel</button>
               </td>
             </tr>
           ))}

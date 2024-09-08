@@ -40,6 +40,7 @@ const Menu = () => {
       <ul className="nav-links">
         <li><Link to="/">Home</Link></li>
         <li><Link to="/rooms">All Rooms</Link></li>
+        <li><Link to="/hotel">Our Hotel</Link></li>
         {username ? (
           <li className="dropdown">
             <button className="dropbtn">{username}</button>

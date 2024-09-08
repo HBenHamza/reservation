@@ -67,12 +67,13 @@ const Home = () => {
       <div className="gallery">
         <h3>PHOTO GALLERY</h3>
         <div className="rooms">
-          <img src={getImageSrc('/img/g-room-1.png')} />
-          <img src={getImageSrc('/img/g-room-2.png')} />
-          <img src={getImageSrc('/img/g-room-3.png')} />
-          <img src={getImageSrc('/img/g-room-4.png')} />
-          <img src={getImageSrc('/img/g-room-5.png')} />
-          <img src={getImageSrc('/img/g-room-6.png')} />
+          <img src={getImageSrc('/img/g-room-1.jpeg')} />
+          <img src={getImageSrc('/img/g-room-2.jpeg')} />
+          <img src={getImageSrc('/img/g-room-3.jpeg')} />
+          <img src={getImageSrc('/img/g-room-4.jpeg')} />
+          <img src={getImageSrc('/img/g-room-5.jpeg')} />
+          <img src={getImageSrc('/img/g-room-6.jpeg')} />
+          <img src={getImageSrc('/img/g-room-7.jpeg')} />
         </div>
       </div>
     </div>
