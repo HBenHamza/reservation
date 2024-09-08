@@ -106,7 +106,7 @@ app.post('/api/register', (req, res) => {
         const user = { username, email, password: hashedPassword };
         db.query('INSERT INTO users SET ?', user, (err, result) => {
             if (err) throw err;
-            res.json({ message: 'User registered successfully' });
+            res.json({ message: 'User registered successfully', user: user });
         });
     });
 });

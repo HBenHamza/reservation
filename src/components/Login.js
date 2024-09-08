@@ -18,14 +18,14 @@ const Login = () => {
   const handleSubmit = async (event) => {
     event.preventDefault();
     const formType = isLogin ? 'login' : 'register';
-
+  
     const formData = new FormData(event.target);
     const data = {
       username: formType === 'register' ? formData.get('username') : '',
       email: formData.get('email'),
       password: formData.get('password'),
     };
-
+  
     try {
       const response = await fetch(`http://localhost:3001/api/${formType}`, {
         method: 'POST',
@@ -34,15 +34,16 @@ const Login = () => {
         },
         body: JSON.stringify(data),
       });
-
+  
       const result = await response.json();
-
+      console.log('Server response:', result); // Add this line to inspect the response
+  
       if (response.ok) {
         localStorage.setItem('username', result.user.username);
         localStorage.setItem('userId', result.user.id);
         setMessageType('success');
         setMessage(result.message);
-
+  
         if (isLogin) {
           setTimeout(() => {
             window.location.href = '/';
@@ -52,13 +53,14 @@ const Login = () => {
         }
       } else {
         setMessageType('error');
-        setMessage(result.message);
+        setMessage(result.message || 'An error occurred'); // Ensure `result.message` is valid
       }
     } catch (error) {
+      console.error('Error occurred:', error); // Add this line to log unexpected errors
       setMessageType('error');
       setMessage('An unexpected error occurred. Please try again later.');
     }
-
+  
     if (isLogin && loginFormRef.current) {
       loginFormRef.current.reset();
     }
@@ -66,6 +68,7 @@ const Login = () => {
       registerFormRef.current.reset();
     }
   };
+  
 
   return (
     <div className="container" id="login">
