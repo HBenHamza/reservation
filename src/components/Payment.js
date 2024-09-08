@@ -5,6 +5,8 @@ import { useHistory, useParams } from 'react-router-dom';
 
 const Payment = () => {
   const { reservation_id } = useParams(); // Get reservation_id from URL parameters
+  const { roomPrice } = useParams(); // Get reservation_id from URL parameters
+  
   const history = useHistory();
 
   const [formData, setFormData] = useState({
@@ -16,18 +18,6 @@ const Payment = () => {
   });
   const [alertMessage, setAlertMessage] = useState(null);
   const [alertType, setAlertType] = useState('success');
-  const [roomPrice, setRoomPrice] = useState(0);
-
-  useEffect(() => {
-    // Retrieve roomPrice from sessionStorage
-    const storedRoomPrice = sessionStorage.getItem('roomPrice');
-    if (storedRoomPrice) {
-      setRoomPrice(parseFloat(storedRoomPrice));
-    } else {
-      setAlertMessage('Room price not found. Please return to the reservation page.');
-      setAlertType('error');
-    }
-  }, []);
 
   const handleChange = (e) => {
     const { id, value } = e.target;
@@ -109,7 +99,14 @@ const Payment = () => {
 
     try {
       await axios.post('http://localhost:3001/api/payments', paymentData);
-      setAlertMessage('Payment processed successfully!');
+      
+      // Update reservation status to 'confirmed'
+      await axios.post('http://localhost:3001/api/reservations/update-status', {
+        reservation_id: reservation_id,
+        status: 'confirmed'
+      });
+      
+      setAlertMessage('Payment processed successfully and reservation confirmed!');
       setAlertType('success');
       setTimeout(() => {
         history.push('/');
@@ -149,7 +146,7 @@ const Payment = () => {
           <div className="form-group">
             <label htmlFor="PaymentAmount">Payment amount</label>
             <div className="amount-placeholder">
-              <span>{roomPrice.toFixed(2)} </span>
+              <span>{parseFloat(roomPrice).toFixed(2)} </span>
               <span>TND</span>
             </div>
           </div>
@@ -217,7 +214,7 @@ const Payment = () => {
           </div>
           <button id="PayButton" className="btn btn-block btn-success submit-button" type="submit">
             <span className="submit-button-lock"></span>
-            <span className="align-middle">Pay {roomPrice.toFixed(2)} TND</span>
+            <span className="align-middle">Pay {parseFloat(roomPrice).toFixed(2)} TND</span>
           </button>
         </form>
       </div>

@@ -148,7 +148,7 @@ const Rooms = () => {
                 <div className="details">
                   <p>
                     <span>{room.title}</span>
-                    <span>Price: {room.price}</span>
+                    <span>Price: {room.price} TND</span>
                   </p>
                   <a href="#" onClick={(e) => { e.preventDefault(); handleDetailsClick(room.folder); }}>Room details</a>
                 </div>

@@ -39,6 +39,7 @@ const Login = () => {
 
       if (response.ok) {
         localStorage.setItem('username', result.user.username);
+        localStorage.setItem('userId', result.user.id);
         setMessageType('success');
         setMessage(result.message);
 

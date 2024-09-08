@@ -44,11 +44,14 @@ const Menu = () => {
           <li className="dropdown">
             <button className="dropbtn">{username}</button>
             <div className="dropdown-content">
+              <Link to="/profile" className="profile-link">Profile</Link>
               <button onClick={handleLogout} className="logout-btn">Logout</button>
             </div>
           </li>
         ) : (
-          <li><Link to="/login">Login</Link></li>
+          <>
+            <li><Link to="/login">Login</Link></li>
+          </>
         )}
       </ul>
     </nav>

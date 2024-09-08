@@ -128,7 +128,8 @@ const Reservation = () => {
             body: JSON.stringify({
                 ...formData,
                 room_id: roomId,
-                voucher
+                voucher,
+                re_status: 'pending'
             })
         })
         .then(response => response.json())
@@ -136,23 +137,35 @@ const Reservation = () => {
             if (data.error) {
                 setAlertMessage(data.error);
             } else {
-                // Fetch reservation details including room price
                 fetch(`http://localhost:3001/api/reservations/${data.reservation_id}`)
-                    .then(response => response.json())
-                    .then(reservationData => {
-                        if (reservationData.error) {
-                            setAlertMessage(reservationData.error);
+                .then(response => response.json())
+                .then(reservationData => {
+                    if (reservationData.error) {
+                    setAlertMessage(reservationData.error);
+                    } else {
+                    const room_id = reservationData.room; // Adjust according to your data structure
+
+                    // Fetch room details to get room price
+                    fetch(`http://localhost:3001/api/rooms/${room_id}`)
+                        .then(response => response.json())
+                        .then(roomData => {
+                        if (roomData.error) {
+                            setAlertMessage(roomData.error);
                         } else {
-                            const roomPrice = reservationData.room_price; // Adjust according to your data structure
-                            // Store roomPrice in sessionStorage
-                            sessionStorage.setItem('roomPrice', roomPrice);
-                            // Redirect to payment page with reservation_id
-                            history.push(`/payment/${data.reservation_id}`);
+                            const roomPrice = roomData.room_price; // Adjust according to your data structure
+                            // Redirect to payment page with reservation_id and roomPrice
+                            history.push(`/payment/${data.reservation_id}/${roomPrice}`);
                         }
-                    })
-                    .catch(error => {
-                        setAlertMessage('An error occurred while fetching reservation details.');
-                    });
+                        })
+                        .catch(error => {
+                        setAlertMessage('An error occurred while fetching room details.');
+                        });
+                    }
+                })
+                .catch(error => {
+                    setAlertMessage('An error occurred while fetching reservation details.');
+                });
+
             }
         })
         .catch(error => {

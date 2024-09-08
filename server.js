@@ -135,17 +135,30 @@ app.post('/api/login', (req, res) => {
 
 // Endpoint to handle reservation data
 app.post('/api/reservations', (req, res) => {
-    const { full_name, email, phone, arrival_date, departure_date, number_of_nights, room_id, special_occasion, voucher } = req.body;
+    const { 
+        full_name, 
+        email, 
+        phone, 
+        arrival_date, 
+        departure_date, 
+        number_of_nights, 
+        room_id, 
+        special_occasion, 
+        voucher,
+        re_status
+    } = req.body;
+
     const query = `
         INSERT INTO reservation (
-            full_name, email, phone, arrival_date, departure_date, number_of_nights, room, special_occasion, voucher
-        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+            full_name, email, phone, arrival_date, departure_date, number_of_nights, room, special_occasion, voucher, status
+        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
     `;
-    db.query(query, [full_name, email, phone, arrival_date, departure_date, number_of_nights, room_id, special_occasion || null, voucher], (err, result) => {
+    db.query(query, [full_name, email, phone, arrival_date, departure_date, number_of_nights, room_id, special_occasion || null, voucher, re_status], (err, result) => {
         if (err) return res.status(500).json({ error: err.message });
         res.status(200).json({ reservation_id: result.insertId });
     });
 });
+
 
 app.get('/api/reservations/:reservation_id', (req, res) => {
     const reservationId = parseInt(req.params.reservation_id);
@@ -163,7 +176,31 @@ app.get('/api/reservations/:reservation_id', (req, res) => {
     });
 });
 
-
+app.post('/api/reservations/update-status', (req, res) => {
+    const { reservation_id, status } = req.body;
+  
+    // Validate inputs
+    if (!reservation_id || !status) {
+      return res.status(400).json({ error: 'Reservation ID and status are required.' });
+    }
+  
+    const query = `
+      UPDATE reservation
+      SET status = ?
+      WHERE id = ?
+    `;
+  
+    db.query(query, [status, reservation_id], (err, result) => {
+      if (err) return res.status(500).json({ error: err.message });
+  
+      if (result.affectedRows === 0) {
+        return res.status(404).json({ error: 'Reservation not found.' });
+      }
+  
+      res.status(200).json({ message: 'Reservation status updated successfully.' });
+    });
+  });
+  
 
   
   // Endpoint to handle payment data
@@ -216,6 +253,94 @@ app.get('/api/rooms', (req, res) => {
     });
 });
 
+// Route to get room details by ID
+app.get('/api/rooms/:room_id', (req, res) => {
+    const roomId = req.params.room_id;
+    
+    const query = 'SELECT * FROM rooms WHERE id = ?'; // Adjust table and column names as needed
+  
+    db.query(query, [roomId], (err, results) => {
+      if (err) {
+        return res.status(500).json({ error: err.message });
+      }
+      
+      if (results.length === 0) {
+        return res.status(404).json({ error: 'Room not found' });
+      }
+  
+      const room = results[0];
+      res.status(200).json({
+        room_id: room.id,
+        room_price: room.price // Adjust according to your column names
+      });
+    });
+  });
+
+  // Endpoint to fetch user details
+  app.get('/api/user/details/:userId', (req, res) => {
+    const userId = req.params.userId; // Get user ID from request parameters
+  
+    // Check if userId is provided
+    if (!userId) {
+      return res.status(400).json({ error: 'User ID is required' });
+    }
+  
+    // Query to get user details from the database
+    db.query('SELECT username, email FROM users WHERE id = ?', [userId], (err, results) => {
+      if (err) return res.status(500).json({ error: err.message });
+      if (results.length === 0) return res.status(404).json({ error: 'User not found' });
+  
+      res.json(results[0]);
+    });
+  });
+  
+  
+  // Endpoint to update user details
+  app.put('/api/user/update', (req, res) => {
+    const { username, email, password , id} = req.body;
+    db.query(
+      'UPDATE users SET username = ?, email = ?, password = ? WHERE id = ?',
+      [username, email, password, id],
+      (err) => {
+        if (err) return res.status(500).json({ error: err.message });
+        res.json({ message: 'Profile updated successfully' });
+      }
+    );
+  });
+  
+  // Endpoint to fetch user reservations
+app.get('/api/user/reservations/:userId', (req, res) => {
+    const userId = req.params.userId; // Get user ID from request parameters
+  
+    // Step 1: Fetch all payments for the user
+    db.query('SELECT reservation_id FROM payment WHERE user_id = ?', [userId], (err, paymentResults) => {
+      if (err) return res.status(500).json({ error: err.message });
+  
+      // Extract reservation IDs from payments
+      const reservationIds = paymentResults.map(payment => payment.reservation_id);
+  
+      if (reservationIds.length === 0) {
+        return res.json([]); // No reservations found
+      }
+  
+      // Step 2: Fetch reservations based on the reservation IDs
+      db.query('SELECT * FROM reservation WHERE id IN (?)', [reservationIds], (err, reservationResults) => {
+        if (err) return res.status(500).json({ error: err.message });
+        res.json(reservationResults);
+      });
+    });
+  });
+  
+  
+  // Endpoint to cancel a reservation
+  app.delete('/api/reservations/:id', (req, res) => {
+    const reservationId = req.params.id;
+      // Cancel the reservation
+      db.query('UPDATE reservation SET status = "canceled" WHERE id = ?', [reservationId], (err) => {
+        if (err) return res.status(500).json({ error: err.message });
+        res.json({ message: 'Reservation cancelled successfully' });
+      });
+    });  
 
 // Define the port and start the server
 const PORT = process.env.PORT || 3001;

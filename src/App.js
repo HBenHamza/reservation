@@ -9,6 +9,7 @@ import VirtualTour from './components/VirtualTour.js';
 import Payment from './components/Payment.js';
 import Menu from './components/_partials/Menu.js';
 import Footer from './components/_partials/Footer.js';
+import Profile from './components/_partials/Profile.js';
 
 function App() {
   return (
@@ -20,8 +21,9 @@ function App() {
           <Route path="/rooms" component={Rooms} />
           <Route path="/reservation/:roomId" component={Reservation} />
           <Route path="/login" component={Login} />
+          <Route path="/profile" component={Profile} />
           <Route path="/virtualTour" component={VirtualTour} />
-          <Route path="/payment/:reservation_id" component={Payment} />
+          <Route path="/payment/:reservation_id/:roomPrice" component={Payment} />
         </Switch>
         <Footer />
       </div>
